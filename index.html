@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UPSC Daily Current Affairs — Personal Dashboard (LIVE)</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#111821; --ink:#e8eef6; --muted:#97a6b5; --accent:#66c; --chip:#1b2330; --chip-on:#1e2f57; --ok:#2e7d32; --warn:#d84315;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--ink)}
+    header{padding:20px 24px; border-bottom:1px solid #1d2632; position:sticky; top:0; background:linear-gradient(180deg, rgba(11,15,20,.98), rgba(11,15,20,.90)); backdrop-filter: blur(6px); z-index:3}
+    h1{font-size:22px; margin:0 0 8px 0}
+    .sub{color:var(--muted); font-size:13px}
+    .controls{display:grid; grid-template-columns: repeat(12, 1fr); gap:10px; margin-top:12px}
+    .controls > div{grid-column:span 3; min-width:0}
+    .controls label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+    input[type="date"], input[type="text"], select{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #2a3443; background:#0f141b; color:var(--ink)}
+    .chips{display:flex; flex-wrap:wrap; gap:8px; padding:10px; border:1px solid #2a3443; background:#0f141b; border-radius:12px; max-height:104px; overflow:auto}
+    .chip{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid #2a3443; background:var(--chip); color:var(--ink); cursor:pointer; user-select:none}
+    .chip.active{background:var(--chip-on); border-color:#2e4170}
+    .btns{display:flex; gap:10px; align-items:center}
+    button{padding:10px 12px; border-radius:12px; border:1px solid #2a3443; background:#132036; color:var(--ink); cursor:pointer}
+    button.primary{background:#1e2f57; border-color:#2c4076}
+    main{padding:22px 24px}
+    .stats{display:flex; gap:14px; align-items:center; color:var(--muted); font-size:13px; margin:10px 0 14px}
+    .grid{display:grid; grid-template-columns: repeat(12, 1fr); gap:14px}
+    .card{grid-column: span 6; background:var(--card); border:1px solid #1b2533; border-radius:16px; padding:16px; box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset}
+    .card h3{margin:0 0 6px 0; font-size:16px; line-height:1.25}
+    .meta{display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:12px}
+    .pill{padding:3px 8px; border-radius:999px; background:#0f141b; border:1px solid #263143}
+    .summary{margin:10px 0; font-size:14px; color:#cfe0f0}
+    .why{margin:10px 0 0; font-size:13px; color:#b5c6d6}
+    .list{margin-top:8px; padding-left:16px; color:#cfe0f0}
+    a{color:#8fb3ff; text-decoration:none}
+    a:hover{text-decoration:underline}
+    .empty{color:var(--muted); padding:30px 0}
+    .footer{margin-top:24px; color:var(--muted); font-size:12px}
+    .badge{font-size:10px; padding:2px 6px; border-radius:8px; border:1px solid #243047; background:#0f141b; color:#a8bdd4; margin-left:6px}
+    @media (max-width:1000px){ .card{grid-column: span 12} .controls > div{grid-column:span 6} }
+    @media (max-width:640px){ .controls{grid-template-columns: repeat(6, 1fr)} .controls > div{grid-column:span 6} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>UPSC Daily Current Affairs — Personal Dashboard
+      <span id="liveBadge" class="badge" style="display:none">LIVE</span>
+    </h1>
+    <div class="sub">Filter by date, category, or keyword. Aligned to <b>UPSC GS</b>. Each card has <b>Prelims facts</b> and a <b>Mains angle</b>.</div>
+    <div class="controls" role="region" aria-label="Filters">
+      <div>
+        <label for="dateFilter">Date</label>
+        <input type="date" id="dateFilter" />
+      </div>
+      <div>
+        <label>Categories (toggle)</label>
+        <div id="categoryChips" class="chips" aria-label="Categories"></div>
+      </div>
+      <div>
+        <label for="search">Keyword search</label>
+        <input type="text" id="search" placeholder="Search title, tags, summary..." />
+      </div>
+      <div>
+        <label for="viewMode">View</label>
+        <select id="viewMode">
+          <option value="all">All items</option>
+          <option value="prelims">Prelims focus only</option>
+          <option value="mains">Mains focus only</option>
+        </select>
+      </div>
+    </div>
+    <div class="btns" style="margin-top:10px">
+      <button class="primary" id="todayBtn" title="Jump to today">Today</button>
+      <button id="clearFilters">Clear filters</button>
+      <button id="exportCsv">Export filtered to CSV</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats" id="stats"></div>
+    <section class="grid" id="results" aria-live="polite"></section>
+    <div class="footer">Free & personal. Data pulled from official RSS feeds (e.g., PIB). This page tries to load <code>items.json</code> (LIVE); if missing, it falls back to the local sample below (offline).</div>
+  </main>
+
+  <script>
+  // === UPSC CATEGORIES ===
+  const CATEGORIES = [
+    'Polity',
+    'Governance',
+    'Economy',
+    'International Relations',
+    'Environment',
+    'Science & Tech',
+    'Geography',
+    'History & Culture',
+    'Security/Disaster',
+    'Schemes',
+    'Bills & Acts',
+    'Judgments',
+    'Reports & Indices',
+  ];
+
+  // === LOCAL SAMPLE (offline fallback) ===
+  let ITEMS = [
+    {
+      id: 'sample1',
+      date: '2025-08-08',
+      category: 'Polity',
+      title: 'Sample item — replace by LIVE data',
+      source: 'Sample',
+      link: '#',
+      summary: 'This is a placeholder entry. When items.json is present, it will be replaced.',
+      prelims: ['Source: Sample', 'Date: 2025-08-08'],
+      why: 'Mains angle: governance impact.',
+      tags: ['sample']
+    }
+  ];
+
+  // ====== LIVE FETCH (items.json) ======
+  const LIVE_URL = 'items.json';
+  const liveBadge = document.getElementById('liveBadge');
+
+  fetch(LIVE_URL, {cache:'no-store'})
+    .then(r => r.ok ? r.json() : Promise.reject('no-json'))
+    .then(remote => {
+      if (Array.isArray(remote) && remote.length){
+        ITEMS = remote;
+        liveBadge.style.display = 'inline-block';
+        render();
+      }
+    })
+    .catch(_=>{/*silent fallback*/});
+
+  // ====== State + DOM Refs ======
+  let activeCats = new Set();
+  const resultsEl = document.getElementById('results');
+  const statsEl = document.getElementById('stats');
+  const chipsEl = document.getElementById('categoryChips');
+  const dateEl = document.getElementById('dateFilter');
+  const searchEl = document.getElementById('search');
+  const viewEl = document.getElementById('viewMode');
+  const todayBtn = document.getElementById('todayBtn');
+  const clearBtn = document.getElementById('clearFilters');
+  const exportBtn = document.getElementById('exportCsv');
+
+  function buildChips(){
+    chipsEl.innerHTML = '';
+    CATEGORIES.forEach(cat => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = cat;
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => {
+        if(activeCats.has(cat)) { activeCats.delete(cat); b.classList.remove('active'); b.setAttribute('aria-pressed','false'); }
+        else { activeCats.add(cat); b.classList.add('active'); b.setAttribute('aria-pressed','true'); }
+        render();
+      });
+      chipsEl.appendChild(b);
+    });
+  }
+
+  function ymd(date){
+    const d = new Date(date);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+  function setToday(){ dateEl.value = ymd(new Date()); }
+
+  function filterItems(){
+    const q = searchEl.value.trim().toLowerCase();
+    const wantDate = dateEl.value || '';
+    const view = viewEl.value;
+    return ITEMS.filter(it => {
+      if(wantDate && it.date !== wantDate) return false;
+      if(activeCats.size && !activeCats.has(it.category)) return false;
+      if(q){
+        const blob = `${it.title} ${it.summary} ${it.why} ${it.tags?.join(' ')} ${it.source}`.toLowerCase();
+        if(!blob.includes(q)) return false;
+      }
+      if(view === 'prelims' && (!it.prelims || it.prelims.length === 0)) return false;
+      if(view === 'mains' && (!it.why || it.why.trim() === '')) return false;
+      return true;
+    }).sort((a,b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title));
+  }
+
+  function escapeHtml(s){ return (s||'').replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\\'':'&#39;'}[c])); }
+
+  function render(){
+    const items = filterItems();
+    statsEl.textContent = `${items.length} item(s) shown · ${activeCats.size? Array.from(activeCats).join(', '): 'All categories'}`;
+    resultsEl.innerHTML = '';
+    if(items.length === 0){
+      const div = document.createElement('div');
+      div.className = 'empty';
+      div.textContent = 'No items. Waiting for LIVE data or change filters.';
+      resultsEl.appendChild(div);
+      return;
+    }
+    for(const it of items){
+      const card = document.createElement('article');
+      card.className = 'card';
+      const h = document.createElement('h3');
+      h.innerHTML = `${escapeHtml(it.title)} <span class="badge">${escapeHtml(it.category)}</span>`;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = `<span class="pill">${escapeHtml(it.date)}</span><span class="pill">${escapeHtml(it.source||'')}</span>${it.tags?.map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join('')||''}`;
+      const sum = document.createElement('div'); sum.className = 'summary'; sum.textContent = it.summary || '';
+      const why = document.createElement('div');  why.className = 'why'; if(it.why) why.textContent = it.why;
+      const list = document.createElement('ul');  list.className = 'list';
+      if(Array.isArray(it.prelims) && it.prelims.length){
+        for(const f of it.prelims){ const li = document.createElement('li'); li.textContent = f; list.appendChild(li); }
+      }
+      const link = document.createElement('a'); link.href = it.link || '#'; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Source';
+
+      card.appendChild(h); card.appendChild(meta); card.appendChild(sum);
+      if(it.prelims?.length){ const label = document.createElement('div'); label.className='sub'; label.style.marginTop='8px'; label.textContent='Prelims facts:'; card.appendChild(label); card.appendChild(list); }
+      if(it.why){ const label2 = document.createElement('div'); label2.className='sub'; label2.style.marginTop='8px'; label2.textContent='Why it matters:'; card.appendChild(label2); card.appendChild(why); }
+      const lwrap = document.createElement('div'); lwrap.style.marginTop='10px'; lwrap.appendChild(link); card.appendChild(lwrap);
+      resultsEl.appendChild(card);
+    }
+  }
+
+  function clearFilters(){
+    activeCats.clear();
+    searchEl.value='';
+    setToday();
+    Array.from(chipsEl.children).forEach(el=>{el.classList.remove('active'); el.setAttribute('aria-pressed','false')});
+    viewEl.value='all';
+    render();
+  }
+
+  function exportCsv(){
+    const rows = filterItems().map(it => [it.date, it.category, it.title, (it.tags||[]).join('|'), it.source||'', it.link||'', (it.prelims||[]).join(' • '), it.why||'', it.summary||'']);
+    const header = ['date','category','title','tags','source','link','prelims','mains_angle','summary'];
+    const csv = [header, ...rows].map(r => r.map(cell => `"${String(cell).replace(/\"/g,'\"\"')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `upsc-current-affairs-${ymd(new Date())}.csv`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+
+  [dateEl, searchEl, viewEl].forEach(el => el.addEventListener('input', render));
+  todayBtn.addEventListener('click', () => { setToday(); render(); });
+  clearBtn.addEventListener('click', clearFilters);
+  exportBtn.addEventListener('click', exportCsv);
+
+  // init
+  (function init(){ buildChips(); setToday(); render(); })();
+  </script>
+</body>
+</html>
