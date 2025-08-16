@@ -1,15 +1,14 @@
 [
   {
-    "id": "demo-1",
+    "id": "demo",
     "date": "2025-08-16",
     "category": "Polity",
-    "title": "Demo Current Affair Item",
-    "source": "Sample Source",
+    "title": "Demo Current Affairs Item",
+    "source": "Sample",
     "link": "#",
-    "summary": "This is a demo entry just to test the site display.",
-    "prelims": ["Fact: Example fact for Prelims"],
-    "why": "Mains angle: Example linkage to syllabus",
-    "tags": ["demo","test"]
+    "summary": "This verifies that your site is reading items.json correctly.",
+    "prelims": ["Demo fact"],
+    "why": "Mains angle: demo verification.",
+    "tags": ["demo"]
   }
 ]
-
