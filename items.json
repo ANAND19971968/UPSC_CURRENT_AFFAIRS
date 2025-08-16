@@ -1,14 +1,26 @@
 [
   {
-    "id": "demo",
+    "id": "demo-1",
     "date": "2025-08-16",
     "category": "Polity",
-    "title": "Demo Current Affairs Item",
-    "source": "Sample",
-    "link": "#",
-    "summary": "This verifies that your site is reading items.json correctly.",
-    "prelims": ["Demo fact"],
-    "why": "Mains angle: demo verification.",
-    "tags": ["demo"]
+    "title": "Parliament passes important bill",
+    "source": "The Hindu",
+    "link": "https://www.thehindu.com/",
+    "summary": "A major bill was passed with implications for governance.",
+    "prelims": ["Bill name", "Date of passage"],
+    "why": "Mains angle: Governance, Polity, and Constitution.",
+    "tags": ["polity", "governance"]
+  },
+  {
+    "id": "demo-2",
+    "date": "2025-08-16",
+    "category": "Economy",
+    "title": "RBI releases new monetary policy update",
+    "source": "Indian Express",
+    "link": "https://indianexpress.com/",
+    "summary": "The Reserve Bank of India has made key changes in repo rate policy.",
+    "prelims": ["Repo rate", "RBI"],
+    "why": "Mains angle: Growth, inflation, monetary policy.",
+    "tags": ["economy", "RBI"]
   }
 ]
